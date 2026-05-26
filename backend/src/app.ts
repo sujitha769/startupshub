@@ -25,7 +25,7 @@ app.use(
   cors({
     origin: (origin, callback) => {
       // Allow localhost:5173 and localhost:5174 for development
-const allowedOrigins = [process.env.CLIENT_URL, 'http://localhost:5174', 'http://localhost:5173', 'https://guileless-alfajores-af8ece.netlify.app']
+const allowedOrigins = [process.env.CLIENT_URL, 'http://localhost:5174', 'http://localhost:5173', 'https://startupshubapp.netlify.app']
       if (!origin || allowedOrigins.includes(origin)) {
         callback(null, true)
       } else {
