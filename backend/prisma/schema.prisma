@@ -1,0 +1,193 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+ 
+}
+
+enum Role {
+  ADMIN
+  STAFF
+  USER
+}
+
+enum SubscriptionStatus {
+  PENDING
+  ACTIVE
+  EXPIRED
+  CANCELLED
+}
+
+enum PaymentStatus {
+  CREATED
+  VERIFIED
+  FAILED
+}
+
+model User {
+  id                   Int                   @id @default(autoincrement())
+  name                 String
+  email                String                @unique
+  password             String
+  role                 Role                  @default(USER)
+  investorStatus       String                @default("NONE")
+  investorApplication  InvestorApplication?
+  subscriptions        UserSubscription[]
+  subscriptionPayments SubscriptionPayment[]
+  passwordResetTokens  PasswordResetToken[]
+  createdAt            DateTime              @default(now())
+  updatedAt            DateTime              @updatedAt
+}
+
+model PasswordResetToken {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  token     String   @unique
+  expiresAt DateTime
+  used      Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+}
+
+model Lead {
+  id               Int    @id @default(autoincrement())
+  title            String
+  shortDescription String
+  fullDescription  String @db.Text
+  domain           String
+  location         String
+  budget           String
+
+  projectType      String
+  duration         String
+  experienceLevel  String
+  numberOfOpenings Int
+  deadline         String?
+
+  skillsRequired      String[]
+  toolsTechnologies   String[]
+  eligibilityCriteria String
+  portfolioRequired   Boolean
+
+  perks String[]
+
+  contactName            String
+  contactEmail           String
+  phoneNumber            String
+  websiteUrl             String?
+  preferredContactMethod String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Highlight {
+  id          Int      @id @default(autoincrement())
+  title       String
+  description String
+  icon        String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model SiteContent {
+  id        Int      @id @default(autoincrement())
+  section   String   @unique
+  title     String
+  content   String   @db.Text
+  updatedAt DateTime @updatedAt
+}
+
+model FundingOpportunity {
+  id          Int      @id @default(autoincrement())
+  title       String
+  amount      String
+  type        String
+  description String   @db.Text
+  applyLink   String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model StartupRaising {
+  id          Int      @id @default(autoincrement())
+  title       String
+  amount      String
+  stage       String
+  details     String   @db.Text
+  contactLink String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model InvestorApplication {
+  id                   Int      @id @default(autoincrement())
+  userId               Int      @unique
+  user                 User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  linkedin             String
+  investmentExperience String   @db.Text
+  pastInvestments      String   @db.Text
+  ticketSize           String
+  status               String   @default("PENDING")
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+}
+
+model SubscriptionPlan {
+  id             Int                   @id @default(autoincrement())
+  name           String
+  description    String                @db.Text
+  amount         Int
+  currency       String                @default("INR")
+  durationInDays Int
+  features       String[]
+  isActive       Boolean               @default(true)
+  subscriptions  UserSubscription[]
+  payments       SubscriptionPayment[]
+  createdAt      DateTime              @default(now())
+  updatedAt      DateTime              @updatedAt
+}
+
+model UserSubscription {
+  id        Int                   @id @default(autoincrement())
+  userId    Int
+  user      User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  planId    Int
+  plan      SubscriptionPlan      @relation(fields: [planId], references: [id])
+  status    SubscriptionStatus    @default(PENDING)
+  startedAt DateTime?
+  expiresAt DateTime?
+  payments  SubscriptionPayment[]
+  createdAt DateTime              @default(now())
+  updatedAt DateTime              @updatedAt
+
+  @@index([userId, status])
+  @@index([expiresAt])
+}
+
+model SubscriptionPayment {
+  id                Int               @id @default(autoincrement())
+  userId            Int
+  user              User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  planId            Int
+  plan              SubscriptionPlan  @relation(fields: [planId], references: [id])
+  subscriptionId    Int?
+  subscription      UserSubscription? @relation(fields: [subscriptionId], references: [id], onDelete: SetNull)
+  amount            Int
+  currency          String            @default("INR")
+  status            PaymentStatus     @default(CREATED)
+  receipt           String            @unique
+  razorpayOrderId   String            @unique
+  razorpayPaymentId String?           @unique
+  razorpaySignature String?
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+
+  @@index([userId, status])
+  @@index([subscriptionId])
+}

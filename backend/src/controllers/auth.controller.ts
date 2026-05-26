@@ -1,0 +1,5 @@
+export { register } from './auth/register'
+export { login } from './auth/login'
+export { logout, getMe } from './auth/logout'
+export { verifyPassword, changePassword } from './auth/password'
+export { forgotPassword, resetPassword } from './auth/resetPassword'
